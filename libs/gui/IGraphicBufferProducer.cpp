@@ -181,6 +181,7 @@ public:
         return result;
     }
 
+#ifdef QCOM_HARDWARE
     virtual status_t setBuffersSize(int size) {
         Parcel data, reply;
         data.writeInterfaceToken(IGraphicBufferProducer::getInterfaceDescriptor());
@@ -192,6 +193,7 @@ public:
         result = reply.readInt32();
         return result;
     }
+#endif
 
 };
 
@@ -229,7 +231,7 @@ status_t BnGraphicBufferProducer::onTransact(
             uint32_t h      = data.readInt32();
             uint32_t format = data.readInt32();
             uint32_t usage  = data.readInt32();
-            int buf;
+            int buf = 0;
             sp<Fence> fence;
             int result = dequeueBuffer(&buf, &fence, async, w, h, format, usage);
             reply->writeInt32(buf);
@@ -261,13 +263,14 @@ status_t BnGraphicBufferProducer::onTransact(
         } break;
         case QUERY: {
             CHECK_INTERFACE(IGraphicBufferProducer, data, reply);
-            int value;
+            int value = 0;
             int what = data.readInt32();
             int res = query(what, &value);
             reply->writeInt32(value);
             reply->writeInt32(res);
             return NO_ERROR;
         } break;
+#ifdef QCOM_HARDWARE
         case SET_BUFFERS_SIZE: {
             CHECK_INTERFACE(IGraphicBufferProducer, data, reply);
             int size = data.readInt32();
@@ -275,6 +278,7 @@ status_t BnGraphicBufferProducer::onTransact(
             reply->writeInt32(res);
             return NO_ERROR;
         } break;
+#endif
         case CONNECT: {
             CHECK_INTERFACE(IGraphicBufferProducer, data, reply);
             sp<IBinder> token = data.readStrongBinder();
